@@ -10,7 +10,6 @@ def is_uqload_url(url: str) -> bool:
     return bool(re.search(uqload_regex, url))
 
 def remove_special_characters(string: str) -> str:
-    pattern = r'[^a-zA-Z0-9\s]'
+    pattern = r'[^a-zA-Z0-9]'
     # replace the matched pattern with ' '
-    string = re.sub(pattern, '_', string)
-    return string
+    return re.sub(pattern, ' ', string)
