@@ -1,5 +1,4 @@
 from setuptools import setup
-from uqload_dl.version import __version__
 
 with open("requirements.txt", "r", encoding="utf-8") as f:
     requirements = f.readlines()
@@ -9,7 +8,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="uqload_dl",
-    version=__version__,
+    version="1.0",
     author="Joel Flores",
     license="GPLv3",
     description="Download any video from the Uqload site",
