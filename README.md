@@ -12,6 +12,14 @@ Inspired by [thomasarmel/uqload_downloader](https://github.com/thomasarmel/uqloa
 
 ## Installation
 
+### From PyPI
+
+You can install the package directly from PyPI using pip:
+
+```bash
+python -m pip install uqload-dl==1.0
+```
+
 ### From Source Code
 
 1. Clone the repository:
