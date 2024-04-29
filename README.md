@@ -4,6 +4,8 @@ You can download any video from Uqload. You only need the URL of the video.
 
 Inspired by [thomasarmel/uqload_downloader](https://github.com/thomasarmel/uqload_downloader)
 
+[GUI version](https://github.com/JoelFH23/uqload-downloader-gui)
+
 ---
 
 ## Requirements
