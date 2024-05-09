@@ -4,8 +4,6 @@ You can download any video from Uqload. You only need the URL of the video.
 
 Inspired by [thomasarmel/uqload_downloader](https://github.com/thomasarmel/uqload_downloader)
 
-[GUI version](https://github.com/JoelFH23/uqload-downloader-gui)
-
 ---
 
 ## Requirements
@@ -13,6 +11,10 @@ Inspired by [thomasarmel/uqload_downloader](https://github.com/thomasarmel/uqloa
 -   Python 3.9 or greater.
 
 ## Installation
+
+### GUI version
+
+[Download](https://github.com/JoelFH23/uqload-downloader-gui)
 
 ### From PyPI
 
