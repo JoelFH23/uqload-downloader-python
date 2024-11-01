@@ -82,7 +82,7 @@ def is_uqload_url(url: str) -> bool:
     if url is None:
         return False
     uqload_regex = (
-        r"^https?://(www\.)?uqload\.(io|com|co|to|net)/(embed\-)?[a-zA-Z0-9]{12}\.(html)$"
+        r"^https?://(www\.)?uqload\.[a-z]+/(embed-)?[a-zA-Z0-9]{12}\.html$"
     )
     if not isinstance(url, str) or not re.match(uqload_regex, url):
         return False
