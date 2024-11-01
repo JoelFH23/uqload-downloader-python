@@ -3,6 +3,7 @@ from uqload_dl.progress_bar import ProgressBar
 from uqload_dl.version import __version__
 from uqload_dl.uqload import UQLoad
 from typing import Dict
+from uqload_dl.utils import sizeof_fmt
 
 
 def print_video_info(video_info: Dict[str, str]) -> None:
@@ -24,7 +25,7 @@ def print_video_info(video_info: Dict[str, str]) -> None:
     print("-" * bar_length)
 
     for key, value in video_info.items():
-        row = f"{key} : {value} bytes" if key == "size" else f"{key} : {value}"
+        row = f"{key} : {sizeof_fmt(value)}" if key == "size" else f"{key} : {value}"
         print(f"{row}")
 
     print("-" * bar_length)
@@ -50,31 +51,34 @@ def main() -> None:
 
     args = parser.parse_args()
 
-    if args.url:
-        uqload_instance = UQLoad(
-            url=args.url,
-            output_file=args.name,
-            output_dir=args.outdir,
-            on_progress_callback=lambda downloaded, total: ProgressBar(total).update(
-                downloaded
-            ),
-        )
+    try:
+        if args.url:
+            uqload_instance = UQLoad(
+                url=args.url,
+                output_file=args.name,
+                output_dir=args.outdir,
+                on_progress_callback=lambda downloaded, total: ProgressBar(
+                    total
+                ).update(downloaded),
+            )
 
-        print_video_info(uqload_instance.get_video_info())
-        print()
+            print_video_info(uqload_instance.get_video_info())
+            print()
 
-        if not args.yes:
-            a = input(f"Do you want to download the video? (yes/[no]): ")
-            if a.lower() == "yes" or a.lower() == "y":
+            if not args.yes:
+                a = input(f"Do you want to download the video? (yes/[no]): ")
+                if a.lower() == "yes" or a.lower() == "y":
+                    uqload_instance.download()
+                    print("The video has been downloaded successfully")
+                else:
+                    print(f"The download has been cancelled")
+            else:
                 uqload_instance.download()
                 print("The video has been downloaded successfully")
-            else:
-                print(f"The download has been cancelled")
         else:
-            uqload_instance.download()
-            print("The video has been downloaded successfully")
-    else:
-        print("No action specified. Use -h or --help for available options.")
+            print("No action specified. Use -h or --help for available options.")
+    except Exception as ex:
+        print(str(ex).upper())
 
 
 if __name__ == "__main__":

@@ -14,14 +14,14 @@ Inspired by [thomasarmel/uqload_downloader](https://github.com/thomasarmel/uqloa
 
 ### GUI version
 
-[Download](https://github.com/JoelFH23/uqload-downloader-gui)
+[Download](https://github.com/JoelFH23/uqload-downloader-gui/releases/tag/uqload-downloader-gui-1.0)
 
 ### From PyPI
 
 You can install the package directly from PyPI using pip:
 
 ```bash
-python -m pip install uqload-dl==1.0
+python -m pip install uqload-dl
 ```
 
 ### From Source Code
@@ -95,17 +95,17 @@ uqload.download() # download the video
 ### Example Usage
 
 ```bash
-(python3.9) PS C:\Users\Joel\desktop> uqload_dl -u vule3vel9n5q
+(python3.12) C:\Users\Joel>uqload_dl -u vule3vel9n5q
 Looking for video...
 ------------------------------------------------------------
                 video info
 ------------------------------------------------------------
-url : https://m180.uqload.io/3rfkv4rhrvw2q4drdkgpxmnva6flydhkehdqtxrb6635d6s4w6j6f5krce4q/v.mp4
+url : https://m180.uqload.net/3rfkv4rhrvw2q4drdkgpxmnva6flydhkehdqtxrb6635d6s4w6jw6napcm4q/v.mp4
 title : python testing time
-image_url : https://m180.uqload.io/i/05/02288/vule3vel9n5q_xt.jpg
+image_url : https://m180.uqload.net/i/05/02288/vule3vel9n5q_xt.jpg
 resolution : 860x360
 duration : 00:22
-size : 915562 bytes
+size : 894.1 KiB
 type : video/mp4
 ------------------------------------------------------------
 Do you want to download the video? (yes/[no]):
@@ -116,21 +116,22 @@ Note: sometimes the resolution and duration will not be available.
 You can use "-y" or "--yes" to start the download automatically.
 
 ```bash
-(python3.9) PS C:\Users\Joel\desktop> uqload_dl -u vule3vel9n5q -y
+(python3.12) C:\Users\Joel>uqload_dl -u vule3vel9n5q -y
 Looking for video...
 ------------------------------------------------------------
                 video info
 ------------------------------------------------------------
-url : https://m180.uqload.io/3rfkv4rhrvw2q4drdkgpxmnva6flydhkehdqtxrb6635d6s4w6jydssrce4q/v.mp4
+url : https://m180.uqload.net/3rfkv4rhrvw2q4drdkgpxmnva6flydhkehdqtxrb6635d6s4w6jumnapcm4q/v.mp4
 title : python testing time
-image_url : https://m180.uqload.io/i/05/02288/vule3vel9n5q_xt.jpg
+image_url : https://m180.uqload.net/i/05/02288/vule3vel9n5q_xt.jpg
 resolution : 860x360
 duration : 00:22
-size : 915562 bytes
+size : 894.1 KiB
 type : video/mp4
 ------------------------------------------------------------
 Downloading... |----------------------------------------| 100.00% completed
-Video saved as: C:\Users\Joel\desktop\python testing time.mp4
+Video saved as: C:\Users\Joel\python testing time.mp4
+The video has been downloaded successfully
 ```
 
 ## License

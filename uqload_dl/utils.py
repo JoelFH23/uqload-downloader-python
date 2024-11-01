@@ -2,6 +2,25 @@ import re, os
 from typing import Callable, Union
 
 
+# https://stackoverflow.com/questions/1094841/get-a-human-readable-version-of-a-file-size
+def sizeof_fmt(num, suffix="B"):
+    """Convert a file size in bytes into a human-readable string format.
+
+    Args:
+        num (float): The size in bytes to convert.
+        suffix (str, optional): The suffix to use for the units. Defaults to "B".
+
+    Returns:
+        str: A formatted string representing the size in a human-readable form,
+        using binary prefixes (e.g., "KiB", "MiB", "GiB").
+    """
+    for unit in ("", "Ki", "Mi", "Gi", "Ti"):
+        if abs(num) < 1024.0:
+            return f"{num:3.1f} {unit}{suffix}"
+        num /= 1024.0
+    return f"{num:.1f}Yi{suffix}"
+
+
 def validate_output_file(output_file: str) -> str:
     """
     Validates and sanitizes the output file name.
@@ -81,9 +100,7 @@ def is_uqload_url(url: str) -> bool:
     """
     if url is None:
         return False
-    uqload_regex = (
-        r"^https?://(www\.)?uqload\.[a-z]+/(embed-)?[a-zA-Z0-9]{12}\.html$"
-    )
+    uqload_regex = r"^https?://(www\.)?uqload\.[a-z]+/(embed-)?[a-zA-Z0-9]{12}\.html$"
     if not isinstance(url, str) or not re.match(uqload_regex, url):
         return False
     return True
