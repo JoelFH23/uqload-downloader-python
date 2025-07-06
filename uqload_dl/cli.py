@@ -84,6 +84,6 @@ def main() -> None:
 if __name__ == "__main__":
     main()
 
-# https://uqload.com/embed-0zmi1ulf0d60.html
-# https://uqload.com/embed-h63yfu9dkw1r.html
-# https://uqload.io/vule3vel9n5q.html"
+# https://uqload.io/embed-0zmi1ulf0d60.html
+# https://uqload.io/embed-h63yfu9dkw1r.html
+# https://uqload.io/vule3vel9n5q.html

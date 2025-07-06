@@ -1,217 +1,96 @@
-import pytest, os, mimetypes
-from pytest_httpx import HTTPXMock
+import pytest
+from unittest.mock import patch
 from uqload_dl.uqload import UQLoad
 from uqload_dl.exceptions import VideoNotFound
+from typing import Dict
 
 
-@pytest.mark.parametrize(
-    "url,output_file,output_dir",
-    [
-        (None, None, None),
-        ("abcdefghijkl", "", None),
-        ("abcdefghijkl", ".....", None),
-        ("abcdefghijkl", "{}{}[]", None),
-        ([], None, None),
-        (["abcdefghijkl"], "my_video.mp4", None),
-        ("abcdefghijkl", "my_video.mp4", "this folder does not exist"),
-        ("abcdefghijkl", "my_video.mp4", os.path.abspath(__file__)),
-        ([1, 2, 3], [None], None),
-        ([[]], None, None),
-        ("", None, None),
-        ("embedabcdefghijkl", None, {}),
-        ("abcdefghijk", None, [None] * 4),
-        ("embed-abcdefghijkl.xml", None, os.path.abspath(__file__)),
-        ("-abcdefghijkl", None, None),
-        ("embed-abcdefghijkl.pdf", None, None),
-        ("uqload.io/embed-abcdefghijkl.html", None, None),
-        ("https://www.youtube.com/watch?v=dQw4w9WgXcQ", None, None),
-        (
-            "https://media.tenor.com/vaUE_cMRWw0AAAAC/patrick-riding-seahorse.gif",
-            None,
-            None,
-        ),
-    ],
-)
-def test_constructor_incorrect_params(url, output_file, output_dir) -> None:
+@pytest.fixture
+def sample_data() -> Dict[str, str]:
+    return {
+        "valid_url": "https://uqload.cx/vule3vel9n5q.html",
+        "formatted_url": "https://uqload.cx/embed-vule3vel9n5q.html",
+        "video_response": '<video src="https://m180.uqload.cx/3rfkv4rhrvw2q4drdkgpxmnva6flydhkehdqtxrb6635d6s4w6j7tq2bdq4q/v.mp4"></video><img src="https://m180.uqload.cx/i/05/02288/vule3vel9n5q_xt.jpg"><script>title: "My Title"</script>',
+        "embed_response": "<h1>My Embed Title</h1><textarea>[1920x1080, 01:23]</textarea>",
+    }
+
+
+def test_invalid_url_raises_value_error() -> None:
     with pytest.raises(ValueError):
-        UQLoad(url, output_file, output_dir)
+        UQLoad("invalid_url")
 
 
 @pytest.mark.parametrize(
-    "url,output_file,output_dir",
-    [
-        ("abcdefghijkl", None, None),
-        ("abcdefghijkl.html", "my video", os.getcwd()),
-        ("embed-abcdefghijkl.html", None, None),
-        ("embed-abcdefghijkl", None, None),
-        ("https://uqload.io/embed-abcdefghijkl.html", None, None),
-    ],
+    "output_file",
+    [(True), (""), (123)],
 )
-def test_constructor_correct_params(url, output_file, output_dir) -> None:
-    uqload_instance = UQLoad(url, output_file, output_dir)
-    assert uqload_instance.output_file == output_file
+def test_invalid_output_file_raises(output_file) -> None:
+    with pytest.raises(ValueError):
+        UQLoad("https://uqload.cx/vule3vel9n5q.html", output_file=output_file)
 
 
-def test_id() -> None:
-    assert UQLoad("abcdefghijkl").url == "https://uqload.io/embed-abcdefghijkl.html"
-    assert (
-        UQLoad("abcdefghijkl.html").url == "https://uqload.io/embed-abcdefghijkl.html"
-    )
-    assert (
-        UQLoad("embed-abcdefghijkl").url == "https://uqload.io/embed-abcdefghijkl.html"
-    )
+@patch("uqload_dl.uqload.ParallelURLFetcher")
+@patch("uqload_dl.uqload.FileDownloader")
+def test_get_video_info_success(
+    mock_downloader, mock_fetcher, sample_data: Dict[str, str]
+) -> None:
+    mock_fetcher.return_value.fetch_all.return_value = [
+        sample_data["video_response"],
+        sample_data["embed_response"],
+    ]
+
+    mock_downloader.return_value.total_size = 12345
+    mock_downloader.return_value.type = "video/mp4"
+
+    uq = UQLoad(sample_data["valid_url"])
+    info = uq.get_video_info()
+
+    assert info["url"].endswith("v.mp4")
+    assert info["image_url"].endswith(".jpg")
+    assert info["title"] == "My Embed Title"
+    assert info["resolution"] == "1920x1080"
+    assert info["duration"] == "01:23"
+    assert info["size"] == 12345
+    assert info["type"] == "video/mp4"
 
 
-def test_get_video_info(httpx_mock: HTTPXMock) -> None:
-    video_url = "https://m180.uqload.io/3rfkv4rhrvw2q4drdkgpxmnva6flydhkehdqtxrb6635d6s4w6jzqldsce4q/v.mp4"
+@patch("uqload_dl.uqload.ParallelURLFetcher")
+@patch("uqload_dl.uqload.FileDownloader")
+def test_download_triggers_fetch_and_download(
+    mock_downloader, mock_fetcher, sample_data: Dict[str, str]
+) -> None:
+    mock_fetcher.return_value.fetch_all.return_value = [
+        sample_data["video_response"],
+        sample_data["embed_response"],
+    ]
+    mock_downloader.return_value.total_size = 100
+    mock_downloader.return_value.type = "video/mp4"
 
-    with open("html/embed.html", "r", encoding="utf-8") as file:
-        html_content = file.read()
-    httpx_mock.add_response(
-        url="https://uqload.io/embed-xxxxxxxxxxxx.html",
-        status_code=200,
-        html=html_content,
-    )
+    uq = UQLoad(sample_data["valid_url"])
+    uq.download()
 
-    with open("html/home.html", "r", encoding="utf-8") as file:
-        home_content = file.read()
-    httpx_mock.add_response(
-        url="https://uqload.io/xxxxxxxxxxxx.html",
-        status_code=200,
-        html=home_content,
-    )
-
-    httpx_mock.add_response(
-        url=video_url,
-        method="HEAD",
-        headers={"Content-Length": "24", "Content-Type": "video/mp4"},
-        status_code=200,
-        content=b"This is the video content",
-    )
-
-    uqload_instance = UQLoad(url="xxxxxxxxxxxx")
-    video_info = uqload_instance.get_video_info()
-
-    assert isinstance(video_info, dict)
-    assert len(video_info) == 7
-
-    assert video_info.get("size") == 24
-    assert video_info.get("title") == "python testing time"
-    assert video_info.get("url") == video_url
-    assert video_info.get("type") == "video/mp4"
-    assert (
-        video_info.get("image_url")
-        == "https://m180.uqload.io/i/05/02288/vule3vel9n5q_xt.jpg"
-    )
+    assert mock_downloader.return_value.download.called
 
 
-def test_get_video_info_failed(httpx_mock: HTTPXMock) -> None:
-    with open("html/home_video_not_found.html", "r", encoding="utf-8") as file:
-        home_content = file.read()
-    httpx_mock.add_response(
-        url="https://uqload.io/xxxxxxxxxxxx.html",
-        status_code=200,
-        html=home_content,
-    )
-    with open("html/embed_video_not_found.html", "r", encoding="utf-8") as file:
-        embed_content = file.read()
-    httpx_mock.add_response(
-        url="https://uqload.io/embed-xxxxxxxxxxxx.html",
-        status_code=200,
-        html=embed_content,
-    )
+@patch("uqload_dl.uqload.ParallelURLFetcher")
+def test_video_not_found_deleted_file(
+    mock_fetcher, sample_data: Dict[str, str]
+) -> None:
+    mock_fetcher.return_value.fetch_all.return_value = [
+        "File was deleted",
+        sample_data["embed_response"],
+    ]
+    uq = UQLoad(sample_data["valid_url"])
     with pytest.raises(VideoNotFound):
-        UQLoad(url="xxxxxxxxxxxx").get_video_info()
+        uq.get_video_info()
 
 
-def test_get_video_info_embed_only(httpx_mock: HTTPXMock) -> None:
-    video_url = "https://m180.uqload.io/3rfkv4rhrvw2q4drdkgpxmnva6flydhkehdqtxrb6635d6s4w6jzqldsce4q/v.mp4"
-
-    with open("html/home_video_not_found.html", "r", encoding="utf-8") as file:
-        home_content = file.read()
-    httpx_mock.add_response(
-        url="https://uqload.io/xxxxxxxxxxxx.html",
-        status_code=200,
-        html=home_content,
-    )
-
-    with open("html/embed.html", "r", encoding="utf-8") as file:
-        embed_content = file.read()
-    httpx_mock.add_response(
-        url="https://uqload.io/embed-xxxxxxxxxxxx.html",
-        status_code=200,
-        html=embed_content,
-    )
-
-    httpx_mock.add_response(
-        url=video_url,
-        method="HEAD",
-        status_code=200,
-        content=b"This is the video content",
-        headers={"Content-Length": "24", "Content-Type": "video/mp4"},
-    )
-    uqload_instance = UQLoad(url="xxxxxxxxxxxx")
-    video_info = uqload_instance.get_video_info()
-    assert len(video_info) == 7
-    assert video_info.get("url") == video_url
-    assert video_info.get("type") == "video/mp4"
-    assert video_info.get("size") == 24
-
-
-def test_download_video(httpx_mock: HTTPXMock) -> None:
-    video_url = "https://m180.uqload.io/3rfkv4rhrvw2q4drdkgpxmnva6flydhkehdqtxrb6635d6s4w6jzqldsce4q/v.mp4"
-
-    with open("html/embed.html", "r", encoding="utf-8") as file:
-        html_content = file.read()
-    httpx_mock.add_response(
-        url="https://uqload.io/embed-xxxxxxxxxxxx.html",
-        status_code=200,
-        html=html_content,
-    )
-    with open("html/home.html", "r", encoding="utf-8") as file:
-        home_content = file.read()
-    httpx_mock.add_response(
-        url="https://uqload.io/xxxxxxxxxxxx.html",
-        status_code=200,
-        html=home_content,
-    )
-
-    file_path = "media/patrick_rides_a_seahorse.mp4"
-    file_size = os.path.getsize(file_path)
-    content_type = mimetypes.guess_type(file_path)[0]
-
-    headers = {"Content-Type": content_type, "Content-Length": str(file_size)}
-
-    with open(file_path, "rb") as video_file:
-        video_content = video_file.read()
-        httpx_mock.add_response(
-            url=video_url,
-            method="HEAD",
-            status_code=200,
-            content=video_content,
-            headers=headers,
-        )
-    with open(file_path, "rb") as video_file:
-        video_content = video_file.read()
-        httpx_mock.add_response(
-            url=video_url,
-            method="GET",
-            status_code=200,
-            content=video_content,
-            headers=headers,
-        )
-
-    uqload_instance = UQLoad(url="xxxxxxxxxxxx", output_file="my video")
-    video_info = uqload_instance.get_video_info()
-    assert video_info.get("type") == content_type
-    assert video_info.get("size") == file_size
-    assert uqload_instance.output_file == "my video"
-
-    uqload_instance.download()
-
-    test_file_path = os.path.join(os.getcwd(), f"{uqload_instance.output_file}.mp4")
-    assert os.path.isfile(test_file_path) == True
-
-    # Clean up the test file
-    if os.path.isfile(test_file_path):
-        os.remove(test_file_path)
+@patch("uqload_dl.uqload.ParallelURLFetcher")
+def test_video_not_found_missing_mp4(mock_fetcher, sample_data: Dict[str, str]) -> None:
+    mock_fetcher.return_value.fetch_all.return_value = [
+        "<html>no video here</html>",
+        sample_data["embed_response"],
+    ]
+    uq = UQLoad(sample_data["valid_url"])
+    with pytest.raises(VideoNotFound):
+        uq.get_video_info()

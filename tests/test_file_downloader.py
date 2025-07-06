@@ -1,111 +1,123 @@
-import os, mimetypes, pytest
-from pytest_httpx import HTTPXMock
+import os
+import pytest
+from unittest.mock import patch, MagicMock
 from uqload_dl.file_downloader import FileDownloader
+from typing import Dict
 
-# image: https://www.awsfzoo.com/media/1J3A7944-scaled.jpg
+
+@pytest.fixture
+def test_data() -> Dict[str, str]:
+    return {
+        "url": "https://example.com/test_file.txt",
+        "filename": "custom_name",
+        "output_dir": os.path.dirname(__file__),
+    }
 
 
-@pytest.mark.parametrize(
-    "url",
-    [
-        (""),
-        ("https://test.com.mx/no_extension"),
-        (None),
-        (True),
-        ([]),
-        ({}),
-    ],
-)
-def test_incorrect_url(url) -> None:
+@patch("uqload_dl.file_downloader.urllib.request.urlopen")
+def test_valid_url_and_metadata(mock_urlopen, test_data: Dict[str, str]) -> None:
+    mock_response = MagicMock()
+    mock_response.getcode.return_value = 200
+    mock_response.info.return_value = {
+        "Content-Length": "100",
+        "Content-Type": "text/plain",
+    }
+    mock_urlopen.return_value.__enter__.return_value = mock_response
+
+    downloader = FileDownloader(url=test_data["url"])
+    assert downloader.url == test_data["url"]
+    assert downloader.total_size == 100
+    assert downloader.type == "text/plain"
+
+
+def test_invalid_url() -> None:
     with pytest.raises(ValueError):
-        FileDownloader(url)
+        FileDownloader("invalid_url.txt")
 
 
-def test_no_filename(httpx_mock: HTTPXMock) -> None:
-    httpx_mock.add_response(
-        headers={"Content-Length": "24"}, status_code=200, method="HEAD"
-    )
+@patch("uqload_dl.file_downloader.urllib.request.urlopen")
+def test_callback_validation(mock_urlopen, test_data: Dict[str, str]) -> None:
+    def callback(downloaded, total) -> None:
+        pass
 
-    assert (
-        FileDownloader(url="https://test.com.mx/the_best_file_name.jpg").get_filename
-        == "the_best_file_name"
-    )
+    mock_response = MagicMock()
+    mock_response.getcode.return_value = 200
+    mock_response.__enter__.return_value = mock_response
 
-    assert (
-        FileDownloader(
-            url="https://test.com.mx/the_best_file_name.jpg",
-            filename="SpongeBob SquarePants",
-        ).get_filename
-        == "SpongeBob SquarePants"
-    )
+    mock_urlopen.return_value = mock_response
 
+    downloader = FileDownloader(url=test_data["url"], on_progress_callback=callback)
+    assert downloader.on_progress_callback == callback
 
-def test_incorrect_filename() -> None:
     with pytest.raises(ValueError):
-        FileDownloader(url="https://test.com.mx/video.mkv", filename="{}{},,::")
+        FileDownloader(url=test_data["url"], on_progress_callback="not_callable")
 
 
-def test_remove_special_characters_in_filename(httpx_mock: HTTPXMock) -> None:
-    httpx_mock.add_response(
-        headers={"Content-Length": "24"}, status_code=200, method="HEAD"
+@patch("uqload_dl.file_downloader.urllib.request.urlopen")
+def test_download_creates_file(mock_urlopen, test_data: Dict[str, str]) -> None:
+    mock_head_response = MagicMock()
+    mock_head_response.getcode.return_value = 200
+    mock_head_response.info.return_value = {
+        "Content-Length": "16",
+        "Content-Type": "text/plain",
+    }
+
+    mock_download_response = MagicMock()
+    mock_download_response.getcode.return_value = 200
+    mock_download_response.read.side_effect = [b"Hello, world!\n", b""]
+
+    mock_head_response.__enter__.return_value = mock_head_response
+    mock_download_response.__enter__.return_value = mock_download_response
+
+    mock_urlopen.side_effect = [mock_head_response, mock_download_response]
+
+    downloader = FileDownloader(
+        test_data["url"], filename="testfile", output_dir=test_data["output_dir"]
     )
-    assert (
-        FileDownloader(
-            url="https://test.com.mx/spongebob.jpg",
-            filename="Filename ¡@@? with,::.special##characters!",
-        ).get_filename
-        == "Filename with special characters"
+    downloader.download()
+
+    assert os.path.isfile(downloader.destination)
+
+    downloader.delete_file()
+    assert not os.path.isfile(downloader.destination)
+
+
+@patch("uqload_dl.file_downloader.urllib.request.urlopen")
+def test_download_keyboard_interrupt(mock_urlopen, test_data: Dict[str, str]) -> None:
+    mock_response = MagicMock()
+    mock_response.getcode.return_value = 200
+    mock_response.read.side_effect = KeyboardInterrupt()
+
+    mock_response.__enter__.return_value = mock_response
+
+    mock_urlopen.side_effect = [mock_response, mock_response]
+
+    downloader = FileDownloader(
+        test_data["url"], filename="testfile", output_dir=test_data["output_dir"]
     )
 
+    try:
+        downloader.download()
+    except KeyboardInterrupt:
+        pytest.fail("Download should handle KeyboardInterrupt internally")
+    finally:
+        downloader.delete_file()
 
-def test_incorrect_output_dir() -> None:
-    with pytest.raises(ValueError):
-        FileDownloader(
-            url="https://test.com.mx/video.mkv",
-            filename="SpongeBob SquarePants",
-            output_dir=__file__,
+
+@patch("uqload_dl.file_downloader.urllib.request.urlopen")
+def test_download_raises_on_404_and_does_not_create_file(
+    mock_urlopen, test_data: Dict[str, str]
+) -> None:
+    mock_response = MagicMock()
+    mock_response.getcode.return_value = 404
+    mock_response.__enter__.return_value = mock_response
+
+    mock_urlopen.return_value = mock_response
+
+    with pytest.raises(ValueError) as exc_info:
+        downloader = FileDownloader(
+            test_data["url"], output_dir=test_data["output_dir"]
         )
+        downloader.download()
 
-
-def test_make_request_with_non_200_status_code(httpx_mock: HTTPXMock) -> None:
-    httpx_mock.add_response(status_code=404, text="Not found.")
-    with pytest.raises(ValueError):
-        FileDownloader(url="https://test.com.mx/not_found.jpg").download()
-
-
-def test_download_image(httpx_mock: HTTPXMock) -> None:
-    file_path = "media/python.jpg"
-    file_size = os.path.getsize(file_path)
-    content_type = mimetypes.guess_type(file_path)[0]
-
-    headers = {"Content-Type": content_type, "Content-Length": str(file_size)}
-
-    with open(file_path, "rb") as image_file:
-        image_content = image_file.read()
-        httpx_mock.add_response(headers=headers, content=image_content, status_code=200)
-
-    downloader = FileDownloader(url="https://test.com.mx/test_mock_image.jpg")
-    downloader.download()
-    assert downloader.total_size == file_size
-    # Clean up the test file
-    downloader.delete_file()
-
-
-def test_download_video(httpx_mock: HTTPXMock) -> None:
-    file_path = "media/patrick_rides_a_seahorse.mp4"
-    file_size = os.path.getsize(file_path)
-    content_type = mimetypes.guess_type(file_path)[0]
-
-    headers = {"Content-Type": content_type, "Content-Length": str(file_size)}
-
-    with open(file_path, "rb") as video_file:
-        video_content = video_file.read()
-        httpx_mock.add_response(headers=headers, content=video_content, status_code=200)
-
-    downloader = FileDownloader(url="https://test.com.mx/test_mock_video.mp4")
-    downloader.download()
-    assert os.path.isfile(f"{downloader.get_filename}.mp4") == True
-    assert downloader.type == content_type
-    assert downloader.total_size == file_size
-    # Clean up the test file
-    downloader.delete_file()
+    assert "non-200" in str(exc_info.value).lower()

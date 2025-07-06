@@ -1,25 +1,24 @@
-import re, os, httpx
+import re, os, urllib
 from uqload_dl.utils import is_a_callback, is_a_valid_directory, validate_output_file
 from urllib.parse import urlparse
 from typing import Callable
 from uuid import uuid4
 
-# Test: https://assets.mixkit.co/videos/preview/mixkit-white-cat-lying-among-the-grasses-seen-up-close-22732-large.mp4
+# Test: https://sampletestfile.com/wp-content/uploads/2023/07/15MB-MP4.mp4
 
 
 class FileDownloader:
     """
-    Class to download a file using the url.
+    Downloads a file from a given URL and saves it locally.
 
     Args:
         url (str): The URL of the file to download.
-        filename (str, Optional): The name of the file to be saved as.
-        output_dir (str, Optional): The directory where the file will be saved.
-        on_progress_callback (Callable, Optional): A callback function that will be called
-        with the downloaded size and total size as arguments.
+        filename (str, optional): Custom name for the output file.
+        output_dir (str, optional): Directory where file will be saved.
+        on_progress_callback (Callable, optional): Callback for download progress.
 
     Raises:
-        ValueError: If URL validation fails for provided URL.
+        ValueError: On invalid input arguments or download issues.
     """
 
     def __init__(
@@ -31,9 +30,11 @@ class FileDownloader:
     ) -> None:
         self.url = self.__validate_url(url)
         self.__filename = self.__validate_output_file(filename)
-        self.outpur_dir = is_a_valid_directory(output_dir)
+        self.output_dir = is_a_valid_directory(output_dir)
         self.on_progress_callback = is_a_callback(on_progress_callback)
         self.__get_metadata()
+        self.destination = None
+        self.bytes_downloaded = 0
 
     def __validate_output_file(self, filename: str = None) -> str:
         """
@@ -66,7 +67,7 @@ class FileDownloader:
             The validated URL.
 
         Raises:
-            ValueError: If the URL is None, empty, not a string, or lacks a file extension.
+            ValueError: If the URL is invalid.
         """
         if url is None or not isinstance(url, str) or not len(url):
             raise ValueError("URL must be a non-empty string.")
@@ -75,11 +76,19 @@ class FileDownloader:
         if not re.match(pattern, url):
             raise ValueError("Invalid URL: URL does not contain a file extension")
 
-        parsed_uri = urlparse(url)
+        parsed = urlparse(url)
         self.headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
-            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
-            "Referer": f"{parsed_uri.scheme}://{parsed_uri.netloc}",
+            "User-Agent": (
+                "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
+                "(KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0"
+            ),
+            "Accept": (
+                "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,"
+                "image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7"
+            ),
+            "Referer": f"{parsed.scheme}://{parsed.netloc}",
+            "Accept-Language": "en-US,en;q=0.9",
+            "Accept-Encoding": "gzip, deflate",
         }
 
         self.name, self.__extension = os.path.splitext(os.path.basename(url))
@@ -88,84 +97,82 @@ class FileDownloader:
 
     def __get_metadata(self) -> None:
         """
-        Fetches metadata for the download.
+        Retrieves file metadata (size and type).
 
         Raises:
-            ValueError: If the content-length does not exist in the header or the status code is not 200.
+            ValueError: On HTTP issues or missing metadata.
         """
-        with httpx.Client() as client:
-            response = client.head(
-                self.url, headers=self.headers, follow_redirects=True, timeout=40
+        try:
+            request = urllib.request.Request(
+                self.url, headers=self.headers, method="HEAD"
             )
-            if response.status_code != 200:
-                raise ValueError("Non-200 status code received")
+            with urllib.request.urlopen(request) as response:
+                if response.getcode() != 200:
+                    raise ValueError("Received non-200 HTTP response")
 
-            content_length = int(response.headers.get("content-length", 0))
-            content_type = str(response.headers.get("content-type", ""))
+                self.total_size = int(response.info().get("Content-Length", 0))
 
-            if not content_length:
-                raise ValueError("Content length is missing")
+                if not self.total_size:
+                    raise ValueError("Missing Content-Length in response")
 
-            self.total_size = content_length
-            self.type = content_type
+                self.type = response.info().get("Content-Type", "")
+        except urllib.error.HTTPError as e:
+            raise ValueError(f"FileDownloader HTTPErrpr {self.url}: {e}") from e
+        except urllib.error.URLError as e:
+            raise ValueError(f"FileDownloader URLErrpr {self.url}: {e}") from e
+        except Exception as e:
+            raise ValueError(f"FileDownloader Unexpected error {self.url}: {e}") from e
 
     @property
-    def get_filename(self) -> str:
-        """Gets the filename."""
+    def filename(self) -> str:
+        """Returns the output filename."""
         return self.__filename
 
     def delete_file(self) -> None:
-        """Deletes the file if it exists."""
-        if os.path.isfile(self.destination):
+        """Deletes the downloaded file if it exists."""
+        if os.path.exists(self.destination):
             print(f"deleted : {self.destination}")
             os.remove(self.destination)
 
     def download(self) -> None:
         """
-        Downloads the file.
+        Downloads the file from the URL.
 
         Raises:
-            KeyboardInterrupt: If the user presses Ctrl+C.
-            ValueError: The status code is not 200.
-            HTTPStatusError: Any HTTP error.
+            ValueError: If the file cannot be downloaded.
+            KeyboardInterrupt: If interrupted by user.
+            Exception: For other errors.
         """
         try:
-            with httpx.stream(
-                method="GET",
-                url=self.url,
-                headers=self.headers,
-                follow_redirects=True,
-                timeout=40,
-            ) as response:
-                response.raise_for_status()
-
-                if response.status_code != 200:
+            request = urllib.request.Request(self.url, headers=self.headers)
+            with urllib.request.urlopen(request) as response:
+                if response.getcode() != 200:
                     raise ValueError("file cannot be downloaded")
 
                 self.destination = os.path.join(
-                    self.outpur_dir, f"{self.__filename}{self.__extension}"
+                    self.output_dir, f"{self.__filename}{self.__extension}"
                 )
-                # check if the file already exist
+
+                # Avoid overwrite
                 if os.path.isfile(self.destination):
                     self.destination = os.path.join(
-                        self.outpur_dir,
+                        self.output_dir,
                         f"{self.__filename}_{uuid4().hex}{self.__extension}",
                     )
 
-                self.bytes_downloaded = 0
                 with open(self.destination, "wb") as file:
-                    for chunk in response.iter_bytes(chunk_size=1024 * 1024):
+                    while chunk := response.read(8192):
                         file.write(chunk)
                         self.bytes_downloaded += len(chunk)
                         if self.on_progress_callback:
                             self.on_progress_callback(
                                 self.bytes_downloaded, self.total_size
                             )
-                print(f"\nVideo saved as: {self.destination}")
+                print(f"\nFile saved as: {self.destination}")
 
-        except httpx.HTTPStatusError as error:
+        except urllib.error.HTTPError as error:
             print(f"\nHTTP ERROR: {str(error)}")
         except KeyboardInterrupt:
-            print(f"\nOperation canceled")
+            print("\nDownload cancelled by user.")
         except Exception as ex:
-            print(f"\nAn error occurred: {str(ex)}")
+            print(f"\nUnexpected error: {ex}")

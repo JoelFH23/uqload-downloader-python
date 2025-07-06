@@ -1,0 +1,34 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "uqload-dl"
+version = "2.0.0"
+description = "Download any video from the Uqload site"
+readme = "README.md"
+license = { file = "LICENSE" }
+authors = [{ name = "Joel Flores", email = "joelhernandez2982@gmail.com" }]
+requires-python = ">=3.9"
+
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+  "Operating System :: OS Independent",
+  "Topic :: Multimedia :: Video",
+]
+
+keywords = ["video", "uqload", "downloader", "streaming", "python"]
+
+[project.urls]
+Homepage = "https://github.com/JoelFH23/uqload-downloader-python"
+Source = "https://github.com/JoelFH23/uqload-downloader-python"
+
+[project.scripts]
+uqload-dl = "uqload_dl.cli:main"
+
+[project.optional-dependencies]
+dev = ["pytest", "build"]
+
+[tool.setuptools.packages.find]
+where = ["."]

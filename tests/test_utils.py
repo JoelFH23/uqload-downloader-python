@@ -6,6 +6,7 @@ from uqload_dl.utils import (
     validate_output_file,
     is_a_valid_directory,
     is_a_callback,
+    sizeof_fmt,
 )
 
 
@@ -130,3 +131,23 @@ def test_uqload_incorrect_url(url) -> None:
 )
 def test_uqload_correct_url(url) -> None:
     assert is_uqload_url(url) == True
+
+
+@pytest.mark.parametrize(
+    "input_bytes, expected",
+    [
+        (0, "0.0 B"),
+        (512, "512.0 B"),
+        (1023, "1023.0 B"),
+        (1024, "1.0 KiB"),
+        (1536, "1.5 KiB"),
+        (1048576, "1.0 MiB"),
+        (1073741824, "1.0 GiB"),
+        (1099511627776, "1.0 TiB"),
+        (1125899906842624, "1.0YiB"),
+        (-1024, "-1.0 KiB"),
+        (1.5 * 1024**2, "1.5 MiB"),
+    ],
+)
+def test_sizeof_fmt(input_bytes, expected):
+    assert sizeof_fmt(input_bytes) == expected

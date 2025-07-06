@@ -21,3 +21,4 @@ share/python-wheels/
 *.egg
 MANIFEST
 .pytest_cache/
+.git
