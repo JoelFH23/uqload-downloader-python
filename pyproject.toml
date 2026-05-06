@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "uqload-dl"
-version = "2.0.0"
+version = "2.0.1"
 description = "Download any video from the Uqload site"
 readme = "README.md"
 license = { file = "LICENSE" }

@@ -61,9 +61,11 @@ class ParallelURLFetcher:
                 ),
                 "Referer": "https://www.google.com",
                 "Accept-Language": "en-US,en;q=0.9",
+                "Connection": "keep-alive",
+                "Cache-Control": "no-cache",
             }
             request = urllib.request.Request(url, headers=headers)
-            with urllib.request.urlopen(request, timeout=10) as response:
+            with urllib.request.urlopen(request, timeout=15) as response:
                 if response.getcode() == 200:
                     content = response.read().decode("utf-8")
                     self._indexed_responses.append((index, content))
@@ -71,7 +73,7 @@ class ParallelURLFetcher:
                     self._indexed_responses.append((index, None))
         except Exception as ex:
             self._indexed_responses.append((index, None))
-            print("ERROR: ParallelURLFetcher ", ex)
+            print(f"ERROR: ParallelURLFetcher for URL {url}: {ex}")
 
     def _run_fetch_threads(self) -> None:
         """

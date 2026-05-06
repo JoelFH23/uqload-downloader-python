@@ -111,12 +111,16 @@ class UQLoad:
 
         response_text_0, response_text_1 = responses
 
-        matches = re.findall(r"https?://.+/v\.mp4", response_text_0)
-        if not matches:
+        match = re.search(r'https://[^"]+/v\.mp4', response_text_0)
+
+        if not match:
             raise VideoNotFound("The video has been deleted or does not exist")
 
-        video_url = matches[0]
-        image_url = re.findall(r"https?://.*?\.jpg", response_text_0)[0]
+        video_url = match.group(0)
+
+        image_url_matches = re.findall(r"https?://.*?\.jpg", response_text_0)
+        image_url = image_url_matches[0] if image_url_matches else None
+
         title_match = re.findall(r'title:\s*"([^"]+)"', response_text_0)
         title = title_match[0] if title_match else "video"
 
@@ -125,22 +129,30 @@ class UQLoad:
         resolution = duration = None
 
         class_names = re.findall(r'class\s*=\s*[\'"]([^\'" ]+)[\'"]', response_text_1)
-        if not "err" in class_names:
+
+        if "err" not in class_names:
             h1_match = re.findall(r"<h1[^>]*>(.*?)</h1>", response_text_1, re.DOTALL)
+
             if h1_match:
                 title = remove_special_characters(" ".join(h1_match[0].split()))
 
             textarea_content = re.findall(
-                r"<textarea[^>]*>(.*?)</textarea>", response_text_1, re.DOTALL
+                r"<textarea[^>]*>(.*?)</textarea>",
+                response_text_1,
+                re.DOTALL
             )
+
             pattern = r"\[(\d+x\d+)\, ((\d+:)*\d+)\]"
+
             for text in textarea_content:
                 match = re.search(pattern, text)
+
                 if match:
                     resolution, duration = match.group(1), match.group(2)
                     break
 
         final_title = remove_special_characters(title)
+
         if not self.output_file:
             self.output_file = final_title or uuid4().hex
 
