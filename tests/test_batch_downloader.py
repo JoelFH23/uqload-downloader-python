@@ -9,9 +9,9 @@ from uqload_dl.exceptions import VideoNotFound
 @pytest.fixture
 def sample_urls_file():
     """Create a temporary file with sample URLs."""
-    content = """@https://uqload.cx/sbmujieyd2cj.html
-@https://uqload.cx/vule3vel9n5q.html
-@https://uqload.cx/0zmi1ulf0d60.html"""
+    content = """@https://uqload.is/sbmujieyd2cj.html
+@https://uqload.is/vule3vel9n5q.html
+@https://uqload.is/0zmi1ulf0d60.html"""
     
     with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.txt') as f:
         f.write(content)
@@ -39,7 +39,7 @@ def test_read_urls_from_file(sample_urls_file):
     urls = downloader.read_urls_from_file(sample_urls_file)
     
     assert len(urls) == 3
-    assert all(url.startswith("https://uqload.cx/") for url in urls)
+    assert all(url.startswith("https://uqload.is/") for url in urls)
 
 
 def test_read_urls_from_file_not_found():
@@ -77,7 +77,7 @@ def test_download_single_video_success(mock_uqload_class):
     mock_uqload_class.return_value = mock_uqload
     
     downloader = BatchDownloader()
-    result = downloader.download_single_video("https://uqload.cx/test.html", 1, 1)
+    result = downloader.download_single_video("https://uqload.is/test.html", 1, 1)
     
     assert result['success'] is True
     assert result['filename'] == 'Test Video'
@@ -92,7 +92,7 @@ def test_download_single_video_not_found(mock_uqload_class):
     mock_uqload_class.side_effect = VideoNotFound("Video not found")
     
     downloader = BatchDownloader()
-    result = downloader.download_single_video("https://uqload.cx/test.html", 1, 1)
+    result = downloader.download_single_video("https://uqload.is/test.html", 1, 1)
     
     assert result['success'] is False
     assert "Video not found" in result['error']
@@ -105,7 +105,7 @@ def test_download_single_video_exception(mock_uqload_class):
     mock_uqload_class.side_effect = Exception("Network error")
     
     downloader = BatchDownloader()
-    result = downloader.download_single_video("https://uqload.cx/test.html", 1, 1)
+    result = downloader.download_single_video("https://uqload.is/test.html", 1, 1)
     
     assert result['success'] is False
     assert "Network error" in result['error']
@@ -121,7 +121,7 @@ def test_download_urls(mock_executor_class):
     # Mock futures
     mock_future1 = MagicMock()
     mock_future1.result.return_value = {
-        'url': 'https://uqload.cx/test1.html',
+        'url': 'https://uqload.is/test1.html',
         'success': True,
         'filename': 'Video 1',
         'error': None
@@ -129,7 +129,7 @@ def test_download_urls(mock_executor_class):
     
     mock_future2 = MagicMock()
     mock_future2.result.return_value = {
-        'url': 'https://uqload.cx/test2.html',
+        'url': 'https://uqload.is/test2.html',
         'success': False,
         'filename': None,
         'error': 'Video not found'
@@ -139,7 +139,7 @@ def test_download_urls(mock_executor_class):
     mock_executor.__enter__.return_value.as_completed.return_value = [mock_future1, mock_future2]
     
     downloader = BatchDownloader(max_workers=2)
-    urls = ["https://uqload.cx/test1.html", "https://uqload.cx/test2.html"]
+    urls = ["https://uqload.is/test1.html", "https://uqload.is/test2.html"]
     
     results = downloader.download_urls(urls)
     
@@ -160,7 +160,7 @@ def test_download_urls_empty_list():
 @patch('uqload_dl.batch_downloader.BatchDownloader.download_urls')
 def test_download_from_file(mock_download_urls, mock_read_urls):
     """Test downloading from file."""
-    mock_read_urls.return_value = ["https://uqload.cx/test1.html", "https://uqload.cx/test2.html"]
+    mock_read_urls.return_value = ["https://uqload.is/test1.html", "https://uqload.is/test2.html"]
     mock_download_urls.return_value = [
         {'success': True, 'filename': 'Video 1'},
         {'success': True, 'filename': 'Video 2'}
@@ -170,5 +170,5 @@ def test_download_from_file(mock_download_urls, mock_read_urls):
     results = downloader.download_from_file("test.txt")
     
     mock_read_urls.assert_called_once_with("test.txt")
-    mock_download_urls.assert_called_once_with(["https://uqload.cx/test1.html", "https://uqload.cx/test2.html"])
+    mock_download_urls.assert_called_once_with(["https://uqload.is/test1.html", "https://uqload.is/test2.html"])
     assert len(results) == 2

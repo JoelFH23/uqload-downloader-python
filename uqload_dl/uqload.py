@@ -77,7 +77,7 @@ class UQLoad:
             raise ValueError("Invalid Uqload URL. Please try again.")
 
         parts = url.rsplit("/", 1)
-        base_url = parts[0] if len(parts) == 2 else "https://uqload.cx"
+        base_url = parts[0] if len(parts) == 2 else "https://uqload.is"
         video_id = parts[-1]
 
         video_id = f"{video_id}.html" if ".html" not in video_id else video_id

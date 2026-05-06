@@ -2,15 +2,15 @@
 
 ## 📊 Résumé des Améliorations
 
-| Optimisation | Avant | Après | Amélioration |
-|--------------|-------|-------|--------------|
-| **Chunk Size** | 8KB | 10MB | **1,200x plus gros** |
-| **Segments parallèles** | 1 connexion | 6 connexions | **6x plus rapide** |
-| **Workers simultanés** | 3 téléchargements | 6 téléchargements | **2x plus rapide** |
-| **Mise à jour progrès** | Chaque chunk | Tous les 1MB | **Beaucoup moins d'overhead** |
-| **Headers HTTP** | Basiques | Optimisés (Keep-Alive) | **Connexions plus rapides** |
-| **Buffer fichier** | Défaut (8KB) | 10MB | **Écriture disque optimisée** |
-| **Timeouts** | 60s/30s | 30s/10s optimisés | **Connexions plus rapides** |
+| Optimisation            | Avant             | Après                  | Amélioration                  |
+| ----------------------- | ----------------- | ---------------------- | ----------------------------- |
+| **Chunk Size**          | 8KB               | 10MB                   | **1,200x plus gros**          |
+| **Segments parallèles** | 1 connexion       | 6 connexions           | **6x plus rapide**            |
+| **Workers simultanés**  | 3 téléchargements | 6 téléchargements      | **2x plus rapide**            |
+| **Mise à jour progrès** | Chaque chunk      | Tous les 1MB           | **Beaucoup moins d'overhead** |
+| **Headers HTTP**        | Basiques          | Optimisés (Keep-Alive) | **Connexions plus rapides**   |
+| **Buffer fichier**      | Défaut (8KB)      | 10MB                   | **Écriture disque optimisée** |
+| **Timeouts**            | 60s/30s           | 30s/10s optimisés      | **Connexions plus rapides**   |
 
 ## 🎯 Vitesse Attendue
 
@@ -22,6 +22,7 @@
 ## 🔧 Détails Techniques
 
 ### 1. Téléchargement par Segments Parallèles
+
 ```python
 # Nouveau: Division en 6 segments parallèles
 Segment 1: [0MB -------- 100MB]
@@ -34,6 +35,7 @@ Segment 6: [500MB ------ 600MB]
 ```
 
 ### 2. Optimisations des Chunks
+
 ```python
 # Avant: 8KB chunks
 chunk = response.read(8192)  # Trop petit!
@@ -43,6 +45,7 @@ chunk = response.read(10*1024*1024)  # 1,200x plus gros!
 ```
 
 ### 3. Headers HTTP Optimisés
+
 ```python
 # Nouveaux headers pour vitesse maximale
 "Accept-Encoding": "identity",  # Pas de compression
@@ -52,6 +55,7 @@ chunk = response.read(10*1024*1024)  # 1,200x plus gros!
 ```
 
 ### 4. Buffers de Fichier Optimisés
+
 ```python
 # Buffer de 10MB pour écriture disque ultra-rapide
 with open(file, "wb", buffering=10*1024*1024) as f:
@@ -61,20 +65,23 @@ with open(file, "wb", buffering=10*1024*1024) as f:
 ## 📈 Benchmarks
 
 ### Vitesse Théorique
+
 - **Connexion 100 Mbps**: ~10-12 MB/s
 - **Connexion 1 Gbps**: ~50-100 MB/s
 - **Limite**: Serveur Uqload (~5-20 MB/s)
 
 ### Comparaison Avant/Après
-| Taille Fichier | Avant | Après | Amélioration |
-|----------------|-------|-------|--------------|
-| 100MB | ~60s | ~10-15s | **4-6x plus rapide** |
-| 500MB | ~300s | ~50-75s | **4-6x plus rapide** |
-| 1GB | ~600s | ~100-150s | **4-6x plus rapide** |
+
+| Taille Fichier | Avant | Après     | Amélioration         |
+| -------------- | ----- | --------- | -------------------- |
+| 100MB          | ~60s  | ~10-15s   | **4-6x plus rapide** |
+| 500MB          | ~300s | ~50-75s   | **4-6x plus rapide** |
+| 1GB            | ~600s | ~100-150s | **4-6x plus rapide** |
 
 ## 🎮 Utilisation
 
 ### Mode Interactif (Recommandé)
+
 ```bash
 # Ultra-simple, demande l'URL
 uqload-dl
@@ -84,15 +91,17 @@ uqload-dl -y
 ```
 
 ### Téléchargement Direct
+
 ```bash
 # Téléchargement single ultra-rapide
-uqload-dl -u https://uqload.cx/video.html -y
+uqload-dl -u https://uqload.is/video.html -y
 
 # Batch ultra-rapide (6 téléchargements simultanés)
 uqload-dl -f urls.txt -w 6
 ```
 
 ### Configuration Avancée
+
 ```bash
 # Vitesse maximale pour batch
 uqload-dl -f urls.txt -w 8 -o ~/Desktop
@@ -104,6 +113,7 @@ python3 speed_test.py
 ## 🔍 Détection Automatique
 
 Le système détecte automatiquement:
+
 - **Fichiers > 5MB**: Segments parallèles (6 connexions)
 - **Fichiers < 5MB**: Téléchargement optimisé normal
 - **Support Range**: Vérifie si le serveur supporte les requêtes Range

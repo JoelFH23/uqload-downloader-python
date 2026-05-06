@@ -22,7 +22,7 @@ def test_speed_improvements():
     print("=" * 60)
     
     # URL d'exemple
-    test_url = "https://uqload.cx/sbmujieyd2cj.html"
+    test_url = "https://uqload.is/sbmujieyd2cj.html"
     
     print(f"\n📡 Test avec URL: {test_url}")
     print("🔧 Configuration optimisée:")

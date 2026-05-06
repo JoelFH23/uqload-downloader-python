@@ -123,8 +123,8 @@ def main() -> None:
     uqload-dl -y
 
   Single video download:
-    uqload-dl -u https://uqload.cx/sbmujieyd2cj.html
-    uqload-dl -u https://uqload.cx/sbmujieyd2cj.html -o /downloads -y
+    uqload-dl -u https://uqload.is/sbmujieyd2cj.html
+    uqload-dl -u https://uqload.is/sbmujieyd2cj.html -o /downloads -y
 
   Batch download from file:
     uqload-dl -f urls.txt
@@ -132,8 +132,8 @@ def main() -> None:
 
 {Colors.WARNING}File format for batch download:{Colors.ENDC}
   Create a text file with one URL per line, starting with @:
-  @https://uqload.cx/sbmujieyd2cj.html
-  @https://uqload.cx/another-video.html
+  @https://uqload.is/sbmujieyd2cj.html
+  @https://uqload.is/another-video.html
         """
     )
     
@@ -276,6 +276,6 @@ def main() -> None:
 if __name__ == "__main__":
     main()
 
-# https://uqload.is/embed-0zmi1ulf0d60.html
-# https://uqload.is/embed-h63yfu9dkw1r.html
-# https://uqload.is/vule3vel9n5q.html
+# https://uqload.io/embed-0zmi1ulf0d60.html
+# https://uqload.io/embed-h63yfu9dkw1r.html
+# https://uqload.io/vule3vel9n5q.html

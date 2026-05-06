@@ -54,8 +54,8 @@ class BatchDownloader:
         Reads URLs from a text file.
         
         Expected format:
-        @https://uqload.cx/sbmujieyd2cj.html
-        @https://uqload.cx/another-video.html
+        @https://uqload.is/sbmujieyd2cj.html
+        @https://uqload.is/another-video.html
         
         Args:
             file_path (str): Path to the text file containing URLs

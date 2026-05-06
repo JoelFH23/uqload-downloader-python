@@ -13,9 +13,9 @@ from uqload_dl.progress_bar import ProgressBar
 def create_sample_urls_file():
     """Create a temporary file with sample URLs for demonstration."""
     sample_urls = [
-        "@https://uqload.cx/sbmujieyd2cj.html",
-        "@https://uqload.cx/vule3vel9n5q.html",
-        "@https://uqload.cx/0zmi1ulf0d60.html"
+        "@https://uqload.is/sbmujieyd2cj.html",
+        "@https://uqload.is/vule3vel9n5q.html",
+        "@https://uqload.is/0zmi1ulf0d60.html"
     ]
     
     # Create temporary file
@@ -33,7 +33,7 @@ def demo_single_download():
     print("=" * 50)
     
     # Example URL (replace with a real one for testing)
-    url = "https://uqload.cx/sbmujieyd2cj.html"
+    url = "https://uqload.is/sbmujieyd2cj.html"
     
     try:
         # Create UQLoad instance with progress bar
