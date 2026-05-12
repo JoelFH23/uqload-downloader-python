@@ -124,8 +124,8 @@ def test_uqload_incorrect_url(url) -> None:
         ("https://uqload.is/embed-xxxxxxxxxxxx.html"),
         ("http://uqload.is/embed-xxxxxxxxxxxx.html"),
         ("https://uqload.co/embed-xxxxxxxxxxxx.html"),
-        ("https://uqload.is/embed-xxxxxxxxxxxx.html"),
-        ("https://uqload.is/xxxxxxxxxxxx.html"),
+        ("https://uqload.com/embed-xxxxxxxxxxxx.html"),
+        ("https://uqload.com/xxxxxxxxxxxx.html"),
         ("https://www.uqload.is/xxxxxxxxxxxx.html"),
     ],
 )
