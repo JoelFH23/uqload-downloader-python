@@ -49,7 +49,7 @@ python -m pip install .[dev]
 from uqload_dl import UQLoad
 
 video = UQLoad(
-    url="https://uqload.io/xxxxxxxxxxxx.html",
+    url="https://uqload.is/xxxxxxxxxxxx.html",
     output_file="my_video",
     output_dir="/home/joel/Videos"
 )
@@ -59,12 +59,13 @@ video.download()
 #### From the command line
 
 ```bash
-uqload-dl -u "https://uqload.io/xxxxxxxxxxxx.html"
+uqload-dl -u "https://uqload.is/xxxxxxxxxxxx.html"
 ```
 
 #### Optional arguments:
+
 ```bash
-uqload-dl -u "https://uqload.io/xxxxxxxxxxxx.html" -n my_video -o /home/joel/Videos
+uqload-dl -u "https://uqload.is/xxxxxxxxxxxx.html" -n my_video -o /home/joel/Videos
 ```
 
 ---

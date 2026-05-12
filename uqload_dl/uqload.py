@@ -15,7 +15,7 @@ from typing import Dict, Callable, Union
 
 class UQLoad:
     """
-    Handles video information retrieval and downloading from UQload.io.
+    Handles video information retrieval and downloading from uqload.is.
     """
 
     def __init__(
@@ -77,7 +77,7 @@ class UQLoad:
             raise ValueError("Invalid Uqload URL. Please try again.")
 
         parts = url.rsplit("/", 1)
-        base_url = parts[0] if len(parts) == 2 else "https://uqload.cx"
+        base_url = parts[0] if len(parts) == 2 else "https://uqload.is"
         video_id = parts[-1]
 
         video_id = f"{video_id}.html" if ".html" not in video_id else video_id
@@ -111,7 +111,7 @@ class UQLoad:
 
         response_text_0, response_text_1 = responses
 
-        matches = re.findall(r"https?://.+/v\.mp4", response_text_0)
+        matches = re.findall(r"https?://[^\"'\s]+/v\.mp4", response_text_0)
         if not matches:
             raise VideoNotFound("The video has been deleted or does not exist")
 

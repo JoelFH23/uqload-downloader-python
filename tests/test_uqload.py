@@ -8,9 +8,9 @@ from typing import Dict
 @pytest.fixture
 def sample_data() -> Dict[str, str]:
     return {
-        "valid_url": "https://uqload.cx/vule3vel9n5q.html",
-        "formatted_url": "https://uqload.cx/embed-vule3vel9n5q.html",
-        "video_response": '<video src="https://m180.uqload.cx/3rfkv4rhrvw2q4drdkgpxmnva6flydhkehdqtxrb6635d6s4w6j7tq2bdq4q/v.mp4"></video><img src="https://m180.uqload.cx/i/05/02288/vule3vel9n5q_xt.jpg"><script>title: "My Title"</script>',
+        "valid_url": "https://uqload.is/vule3vel9n5q.html",
+        "formatted_url": "https://uqload.is/embed-vule3vel9n5q.html",
+        "video_response": '<video src="https://m180.uqload.is/3rfkv4rhrvw2q4drdkgpxmnva6flydhkehdqtxrb6635d6s4w6j7tq2bdq4q/v.mp4"></video><img src="https://m180.uqload.is/i/05/02288/vule3vel9n5q_xt.jpg"><script>title: "My Title"</script>',
         "embed_response": "<h1>My Embed Title</h1><textarea>[1920x1080, 01:23]</textarea>",
     }
 
@@ -26,7 +26,7 @@ def test_invalid_url_raises_value_error() -> None:
 )
 def test_invalid_output_file_raises(output_file) -> None:
     with pytest.raises(ValueError):
-        UQLoad("https://uqload.cx/vule3vel9n5q.html", output_file=output_file)
+        UQLoad("https://uqload.is/vule3vel9n5q.html", output_file=output_file)
 
 
 @patch("uqload_dl.uqload.ParallelURLFetcher")
