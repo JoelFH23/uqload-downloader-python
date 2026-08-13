@@ -1,34 +1,47 @@
 import argparse
-from uqload_dl.progress_bar import ProgressBar
+import sys
+
 from uqload_dl.version import __version__
-from uqload_dl.uqload import UQLoad
-from typing import Dict
-from uqload_dl.utils import sizeof_fmt
+from uqload_dl.uqload import UQload
+from uqload_dl.utils import format_size
+
+from uqload_dl.models import VideoInfo
+
+# https://uqload.is/2opgl0kx82bd.html
+# https://uqload.is/00de21ob60k9.html
 
 
-def print_video_info(video_info: Dict[str, str]) -> None:
-    """
-    Prints video information.
+def print_progress_bar(downloaded: int, total: int, bar_length: int = 30):
+    if total <= 0:
+        downloaded_mb = downloaded / (1024 * 1024)
+        sys.stdout.write(f"\rDownloading... {downloaded_mb:.2f} MB")
+        sys.stdout.flush()
+        return
+    percent = min(downloaded / total, 1.0)
+    filled_length = int(bar_length * percent)
 
-    Args:
-        video_info (dict): Video information.
+    bar = "█" * filled_length + "░" * (bar_length - filled_length)
 
-    Raises:
-        ValueError: if video_info is not dictionary.
-    """
-    if video_info is None or not isinstance(video_info, dict) or not len(video_info):
-        raise ValueError("video_info must be a dictionary")
+    downloaded_mb = downloaded / (1024 * 1024)
+    total_mb = total / (1024 * 1024)
 
-    bar_length = 60
-    print("-" * bar_length)
-    print("\t\tvideo info")
-    print("-" * bar_length)
+    sys.stdout.write(
+        f"\r[{bar}] {percent * 100:.2f}% ({downloaded_mb:.2f} MB / {total_mb:.2f} MB)"
+    )
+    sys.stdout.flush()
 
-    for key, value in video_info.items():
-        row = f"{key} : {sizeof_fmt(value)}" if key == "size" else f"{key} : {value}"
-        print(f"{row}")
 
-    print("-" * bar_length)
+def print_video_info(video_info: VideoInfo) -> None:
+    bar_length = 50
+    print("\n" + "=" * bar_length)
+    print("\t\tVIDEO INFO")
+    print("=" * bar_length)
+    print(f" • Title: {video_info.title}")
+    print(f" • Duration: {video_info.duration}")
+    print(f" • resolution: {video_info.resolution}")
+    print(f" • size: {format_size(video_info.file_size)}")
+    print(f" • URL: {video_info.mp4_url}")
+    print("=" * bar_length + "\n")
 
 
 def main() -> None:
@@ -36,9 +49,8 @@ def main() -> None:
     parser = argparse.ArgumentParser(
         description="Simple script to download video from Uqload"
     )
-    parser.add_argument("-u", "--url", required=True, help="The url or id of the video")
+    parser.add_argument("-u", "--url", required=True, help="The video URL")
     parser.add_argument("-o", "--outdir", help="Folder where the file will be saved")
-    parser.add_argument("-n", "--name", help="Video name")
     parser.add_argument(
         "-y",
         "--yes",
@@ -53,27 +65,21 @@ def main() -> None:
 
     try:
         if args.url:
-            uqload_instance = UQLoad(
-                url=args.url,
-                output_file=args.name,
-                output_dir=args.outdir,
-                on_progress_callback=lambda downloaded, total: ProgressBar(
-                    total
-                ).update(downloaded),
-            )
+            print(f"Looking for video...")
+            client = UQload(args.outdir if args.outdir else "")
+            video_info = client.get_info(args.url)
 
-            print_video_info(uqload_instance.get_video_info())
-            print()
+            print_video_info(video_info)
 
             if not args.yes:
                 a = input(f"Do you want to download the video? (yes/[no]): ")
                 if a.lower() == "yes" or a.lower() == "y":
-                    uqload_instance.download()
+                    client.download(video_info, print_progress_bar)
                     print("The video has been downloaded successfully")
                 else:
                     print(f"The download has been cancelled")
             else:
-                uqload_instance.download()
+                client.download(video_info, print_progress_bar)
                 print("The video has been downloaded successfully")
         else:
             print("No action specified. Use -h or --help for available options.")
@@ -83,7 +89,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
-# https://uqload.io/embed-0zmi1ulf0d60.html
-# https://uqload.io/embed-h63yfu9dkw1r.html
-# https://uqload.io/vule3vel9n5q.html

@@ -4,12 +4,12 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "uqload-dl"
-version = "2.0.0"
+version = "3.0.0"
 description = "Download any video from the Uqload site"
 readme = "README.md"
 license = { file = "LICENSE" }
 authors = [{ name = "Joel Flores", email = "joelhernandez2982@gmail.com" }]
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 
 classifiers = [
   "Programming Language :: Python :: 3",

@@ -1,21 +1,14 @@
-# uqload-dl
+# UQload Downloader Python
 
-**Download any video from the UQload site using Python.**
-
-[![PyPI version](https://badge.fury.io/py/uqload-dl.svg)](https://pypi.org/project/uqload-dl)
-[![License: GPLv3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-
----
+A lightweight Python library for retrieving video information and downloading videos from UQload.
 
 ## Features
 
-- Extract and download videos from UQload
-- Custom output filename and directory
-- Supports download progress callback
-- Simple command-line interface
-- Lightweight and dependency-free
-
----
+- Extract video metadata
+- Retrieve direct download URLs
+- Download videos with progress callbacks
+- Uses only Python's standard library
+- No external dependencies
 
 ## Installation
 
@@ -27,8 +20,6 @@ pip install uqload-dl
 
 ### From Source
 
-Clone the repository and install it manually:
-
 ```bash
 git clone https://github.com/JoelFH23/uqload-downloader-python.git
 cd uqload-downloader-python
@@ -36,27 +27,95 @@ python -m pip install .
 ```
 
 To install with development dependencies (e.g., for testing):
-
 ```bash
 python -m pip install .[dev]
 ```
 
-## Usage
 
-### As a Python module
+## Quick Start
 
-```bash
-from uqload_dl import UQLoad
+### Get Video Information
 
-video = UQLoad(
-    url="https://uqload.io/xxxxxxxxxxxx.html",
-    output_file="my_video",
-    output_dir="/home/joel/Videos"
+```python
+from uqload_dl import UQload
+
+client = UQload()
+
+video = client.get_info(
+    "https://uqload.is/embed-xxxxxxxx.html"
 )
-video.download()
+
+print(video.title)
+print(video.duration)
+print(video.resolution)
+print(video.file_size)
+print(video.mp4_url)
 ```
 
-#### From the command line
+Example output:
+
+```text
+Title: Example Video
+Duration: 00:15:32
+Resolution: 1920x1080
+File Size: 104857600
+MP4 URL: https://...
+```
+
+---
+
+### Download a Video
+
+```python
+from uqload_dl import UQload
+
+client = UQload()
+
+video = client.get_info(
+    "https://uqload.is/embed-xxxxxxxx.html"
+)
+
+client.download(video)
+```
+
+---
+
+### Download with Progress Tracking
+
+```python
+from uqload_dl import UQload
+
+
+def progress(downloaded: int, total: int) -> None:
+    percentage = downloaded / total * 100
+    print(f"\r{percentage:.2f}%", end="")
+
+
+client = UQload()
+
+video = client.get_info(
+    "https://uqload.is/embed-xxxxxxxx.html"
+)
+
+client.download(
+    video_info=video,
+    progress_callback=progress,
+)
+```
+
+## Custom Download Directory
+
+By default, files are downloaded to the user's Downloads directory.
+
+```python
+from uqload_dl import UQload
+
+client = UQload(
+    output_dir="/home/Joel/Videos"
+)
+```
+
+### From the command line
 
 ```bash
 uqload-dl -u "https://uqload.io/xxxxxxxxxxxx.html"
@@ -64,40 +123,20 @@ uqload-dl -u "https://uqload.io/xxxxxxxxxxxx.html"
 
 #### Optional arguments:
 ```bash
-uqload-dl -u "https://uqload.io/xxxxxxxxxxxx.html" -n my_video -o /home/joel/Videos
+uqload-dl -u "https://uqload.io/xxxxxxxxxxxx.html" -o /home/joel/Videos
 ```
-
----
-
-## GUI Version
-
-If you prefer a graphical interface, check out the GUI version of this project:
-
-➡️ **[uqload-downloader-gui](https://github.com/JoelFH23/uqload-downloader-gui)**  
-Built with Python and PyQt for a simple and intuitive user experience.
-
----
 
 ## Requirements
 
-- Python 3.9 or higher
-- No external dependencies required
+- Python 3.10+
 
----
+## Disclaimer
 
-## Development
+This project is intended for educational and personal use only.
 
-Run tests with:
-
-```bash
-pytest
-```
-
----
+Users are responsible for ensuring they comply with all applicable laws, website terms of service, and copyright regulations.
 
 ## License
 
 This project is licensed under the terms of the **GNU General Public License v3.0**.  
 See the [LICENSE](LICENSE) file for full details.
-
----

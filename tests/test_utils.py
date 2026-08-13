@@ -1,60 +1,5 @@
-import pytest, os
-from typing import Literal
-from uqload_dl.utils import (
-    remove_special_characters,
-    is_uqload_url,
-    validate_output_file,
-    is_a_valid_directory,
-    is_a_callback,
-    sizeof_fmt,
-)
-
-
-@pytest.mark.parametrize(
-    "value",
-    [
-        (True),
-        (None),
-        (""),
-        ("!!!!!"),
-        ([1, 2, 3]),
-        ({"key": "value"}),
-    ],
-)
-def test_invalid_output_file(value) -> None:
-    with pytest.raises(ValueError):
-        validate_output_file(value)
-
-
-def test_valid_output_file() -> None:
-    assert validate_output_file("test!") == "test"
-    assert validate_output_file("filename") == "filename"
-
-
-@pytest.mark.parametrize("value", [([None] * 4), ({}), (""), (True)])
-def test_invalid_directory(value) -> None:
-    with pytest.raises(ValueError):
-        is_a_valid_directory(value)
-
-
-def test_valid_directory() -> None:
-    assert is_a_valid_directory(None) == os.getcwd()
-
-
-def test_callback_none() -> None:
-    assert is_a_callback() is None
-
-
-def test_callback_callable() -> None:
-    def sample_callback() -> Literal["Sample Callback"]:
-        return "Sample Callback"
-
-    assert is_a_callback(sample_callback) == sample_callback
-
-
-def test_callback_not_callable() -> None:
-    with pytest.raises(ValueError):
-        is_a_callback(123)
+import pytest
+from uqload_dl.utils import remove_special_characters, format_size
 
 
 @pytest.mark.parametrize("input_string", [(""), ([]), (None), (True), [[12, 3, 4, 5]]])
@@ -84,70 +29,19 @@ def test_remove_special_characters() -> None:
 
 
 @pytest.mark.parametrize(
-    "url",
-    [
-        ("https://www.youtube.com/watch?v=dQw4w9WgXcQ"),
-        (None),
-        (True),
-        (""),
-        ([]),
-        ({}),
-        (
-            "https://e7.pngegg.com/pngimages/782/228/png-clipart-ruby-on-rails-rubygems-amazon-dynamodb-ruby-text-logo.png"
-        ),
-        ("https://www.twitch.tv/twitch"),
-        ("https://test.com/index.html"),
-        ("https://uqload.io/embed-xxxxxxxxxxxx"),
-        ("https://uqload.io/embed-embed-embed-xxxxxxxxxxx"),
-        ("https://uqload.io/xxxxxxxxxxx"),
-        ("https://www.uqload.io/-xxxxxxxxxxxx.html"),
-        ("https://www.uqload.io/e-xxxxxxxxxxxx.html"),
-        ("https://www.uqload.io/.html"),
-        ("https://www.uqload.io"),
-        ("https://uqload.io/embed-.html"),
-        ("https://open.spotify.com/track/2ctvdKmETyOzPb2GiJJT53?si=52ba32b25f9a4a45"),
-        ("uqload.io/embed-xxxxxxxxxxxx.html"),
-        ("xxxxxxxxxxxx"),
-        ("xxxxxxxxxxxx.html"),
-    ],
-)
-def test_uqload_incorrect_url(url) -> None:
-    assert is_uqload_url(url) == False
-
-
-@pytest.mark.parametrize(
-    "url",
-    [
-        ("https://uqload.io/embed-xxxxxxxxxxxx.html"),
-        ("https://www.uqload.io/embed-xxxxxxxxxxxx.html"),
-        ("https://uqload.io/embed-xxxxxxxxxxxx.html"),
-        ("https://uqload.io/embed-xxxxxxxxxxxx.html"),
-        ("http://uqload.io/embed-xxxxxxxxxxxx.html"),
-        ("https://uqload.co/embed-xxxxxxxxxxxx.html"),
-        ("https://uqload.com/embed-xxxxxxxxxxxx.html"),
-        ("https://uqload.com/xxxxxxxxxxxx.html"),
-        ("https://www.uqload.io/xxxxxxxxxxxx.html"),
-    ],
-)
-def test_uqload_correct_url(url) -> None:
-    assert is_uqload_url(url) == True
-
-
-@pytest.mark.parametrize(
     "input_bytes, expected",
     [
-        (0, "0.0 B"),
-        (512, "512.0 B"),
-        (1023, "1023.0 B"),
-        (1024, "1.0 KiB"),
-        (1536, "1.5 KiB"),
-        (1048576, "1.0 MiB"),
-        (1073741824, "1.0 GiB"),
-        (1099511627776, "1.0 TiB"),
-        (1125899906842624, "1.0YiB"),
-        (-1024, "-1.0 KiB"),
-        (1.5 * 1024**2, "1.5 MiB"),
+        (0, 0),
+        (512, "512.00 B"),
+        (1023, "1023.00 B"),
+        (1024, "1.00 KB"),
+        (1536, "1.50 KB"),
+        (1048576, "1.00 MB"),
+        (1073741824, "1.00 GB"),
+        (1099511627776, "1.00 TB"),
+        (1125899906842624, "1024.00 TB"),
+        (1.5 * 1024**2, "1.50 MB"),
     ],
 )
 def test_sizeof_fmt(input_bytes, expected):
-    assert sizeof_fmt(input_bytes) == expected
+    assert format_size(input_bytes) == expected

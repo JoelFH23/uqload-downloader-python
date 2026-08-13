@@ -1,109 +1,15 @@
-import re, os
-from typing import Callable, Union
+import re
+from typing import Literal
 
 
-# https://stackoverflow.com/questions/1094841/get-a-human-readable-version-of-a-file-size
-def sizeof_fmt(num, suffix="B"):
-    """Convert a file size in bytes into a human-readable string format.
-
-    Args:
-        num (float): The size in bytes to convert.
-        suffix (str, optional): The suffix to use for the units. Defaults to "B".
-
-    Returns:
-        str: A formatted string representing the size in a human-readable form,
-        using binary prefixes (e.g., "KiB", "MiB", "GiB").
-    """
-    for unit in ("", "Ki", "Mi", "Gi", "Ti"):
-        if abs(num) < 1024.0:
-            return f"{num:3.1f} {unit}{suffix}"
-        num /= 1024.0
-    return f"{num:.1f}Yi{suffix}"
-
-
-def validate_output_file(output_file: str) -> str:
-    """
-    Validates and sanitizes the output file name.
-
-    Args:
-        output_file (str): A string representing the output file name.
-
-    Returns:
-        str: A sanitized output file name.
-
-    Raises:
-        ValueError: If the provided output_file is None, not a valid string, empty, or contains only special characters.
-    """
-    if output_file is None or not isinstance(output_file, str) or not len(output_file):
-        raise ValueError("Invalid output_file")
-    # Sanitize output_file by removing special characters
-    result = remove_special_characters(output_file)
-    if not len(result):
-        # Raise ValueError if the sanitized result is empty
-        raise ValueError("Invalid output_file")
-    return result
-
-
-def is_a_valid_directory(output_dir: str = None) -> str:
-    """
-    Validates and returns a valid output directory path.
-
-    Return current working directory if output_dir is None (default).
-
-    Args:
-        output_dir (str): A string representing the output directory path.
-
-    Returns:
-        str: A validated output directory path.
-
-    Raises:
-        ValueError: If the provided output_dir is not a valid string or doesn't exist as a directory.
-    """
-    if output_dir is None:
-        return os.getcwd()
-    elif not isinstance(output_dir, str) or not os.path.isdir(output_dir):
-        raise ValueError("Invalid folder path")
-    return output_dir
-
-
-def is_a_callback(callback: Callable = None) -> Union[Callable, None]:
-    """
-    Executes the provided callback function if it's callable.
-
-    Args:
-        callback: A callable function.
-
-    Returns:
-        callable: The provided callback function if it's callable.
-        None: if the callback is None (default).
-
-    Raises:
-        ValueError: If the callback is not callable.
-    """
-    if callback is None:
-        return None  # Return None if callback is None
-    elif not callable(callback):
-        # Raise ValueError for non-callable callback
-        raise ValueError("Callback must be a callable")
-    return callback
-
-
-def is_uqload_url(url: str) -> bool:
-    """
-    Checks if the provided URL is a valid Uqload URL.
-
-    Args:
-        url (str): The URL to validate.
-
-    Returns:
-        bool: True if the URL is a valid Uqload URL, False otherwise.
-    """
-    if url is None:
-        return False
-    uqload_regex = r"^https?://(www\.)?uqload\.[a-z]+/(embed-)?[a-zA-Z0-9]{12}\.html$"
-    if not isinstance(url, str) or not re.match(uqload_regex, url):
-        return False
-    return True
+def format_size(size_in_bytes: int) -> str | Literal[0]:
+    if size_in_bytes == 0:
+        return 0
+    for unit in ["B", "KB", "MB", "GB"]:
+        if size_in_bytes < 1024.0:
+            return f"{size_in_bytes:.2f} {unit}"
+        size_in_bytes /= 1024.0
+    return f"{size_in_bytes:.2f} TB"
 
 
 def remove_special_characters(input_string: str) -> str:
